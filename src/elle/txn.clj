@@ -589,7 +589,7 @@
 
 (def cycle-search-timeout
   "How long, in milliseconds, to look for a certain cycle in any given SCC."
-  1000)
+  100000)
 
 (defn cycle-cases-in-scc-fallback
   "This finds SOME cycle via DFS in an SCC as a fallback, in case our BFS gets
@@ -728,10 +728,10 @@
   ..."
   [opts graph pair-explainer sccs]
   (let [fg (-> (filtered-graphs graph) warm-filtered-graphs!)]
-    (->> sccs
+    (time (->> sccs
          (mapcat (partial cycle-cases-in-scc opts graph fg pair-explainer))
          ; And group them by type
-         (group-by :type))))
+         (group-by :type)))))
 
 (defn cycles
   "Takes an options map, including a collection of expected consistency models

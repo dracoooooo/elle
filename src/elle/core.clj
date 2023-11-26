@@ -481,19 +481,25 @@
        :sccs      A set of strongly connected components
        :anomalies Any anomalies we found during this analysis.}"
   [analyze-fn history]
-  (let [history           (h/client-ops history)
+  (let [construction-start-time (System/nanoTime)
+        history           (h/client-ops history)
         {:keys [anomalies explainer graph]} (analyze-fn history)
+        construction-end-time (System/nanoTime)
+        scc-start-time (System/nanoTime)
         sccs              (g/strongly-connected-components graph)
         cycles            (->> sccs
                                (sort-by (comp :index first))
                                (mapv (partial explain-scc graph
                                               cycle-explainer
                                               explainer)))
+        scc-end-time (System/nanoTime)
         ; It's almost certainly the case that something went wrong if we didn't
         ; infer *any* dependencies.
         anomalies (if (.isEmpty ^ElleGraph graph)
                     (assoc anomalies :empty-transaction-graph true)
                     anomalies)]
+    (println (str "Stage construction Time: "  (quot (- construction-end-time construction-start-time) 1000000) " ms"))
+    (println (str "Stage scc Time: " (quot (- scc-end-time scc-start-time) 1000000) " ms"))
     {:graph     graph
      :explainer explainer
      :sccs      sccs

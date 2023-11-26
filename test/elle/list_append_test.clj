@@ -1155,3 +1155,5 @@
 ;(deftest dirty-update-1-test
 ;  (cf {} "histories/dirty-update-1.edn")))
 
+(deftest ^:perf pref-test
+  (cf {:consistency-models [:causal-cerone]} "histories/small-slow-scc.edn"))
