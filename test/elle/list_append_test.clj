@@ -1212,11 +1212,11 @@
 (def hg-init-read-mono
   "(g, initReadMono):
     [w(x,1,1)]
-    [w(x,1,2) w(y,2,2)]
-    [r(y,1,3) r(x,1,3)]"
+    [w(x,1,1) w(y,2,1)]
+    [r(y,1,2) r(x,1,2)]"
   (let [t1 (op 1 :ok "ax1")
-        t2 (op 2 :ok "ax2ay1")
-        t3 (op 3 :ok "ry1rx1")]
+        t2 (op 1 :ok "ax2ay1")
+        t3 (op 2 :ok "ry1rx1")]
     (h/history [t1 t2 t3])))
 
 (def hh-non-mono-read-co
@@ -1255,11 +1255,11 @@
 (def hk-init-read-wr
   "(k, initReadWR):
     [w(x,1,1)]
-    [w(x,1,2) w(y,2,2)]
-    [r(x,1,3) r(y,1,3)]"
+    [w(x,1,1) w(y,2,1)]
+    [r(x,1,2) r(y,1,2)]"
   (let [t1 (op 1 :ok "ax1")
-        t2 (op 2 :ok "ax2ay1")
-        t3 (op 3 :ok "rx1ry1")]
+        t2 (op 1 :ok "ax2ay1")
+        t3 (op 2 :ok "rx1ry1")]
     (h/history [t1 t2 t3])))
 
 (def hl-frac-read-CO
@@ -1276,22 +1276,14 @@
     (h/history [t1 t2 t3 t4])))
 
 (def hm-frac-read-VO
-  "(i, frac read VO):
-   [w(x,2,1)]
-   [r(x,2,2)]
-   [w(x,1,2) w(y,1,2)]
-   [r(x,2,3) r(y,1,3)]
-   [r(x,2,4)]
-   [r(x,1,4)]
-   理解：同hh，同时 s4 上读到的顺序表明
-   该 session 上对 x 先写 2 后写 1"
-  (let [t1 (op 1 :ok "ax2")
-        t2 (op 2 :ok "rx2")
-        t3 (op 2 :ok "ax1ay1")
-        t4 (op 3 :ok "rx2ry1")
-        t5 (op 4 :ok "rx2")
-        t6 (op 4 :ok "rx1")]
-    (h/history [t1 t2 t3 t4 t5 t6])))
+  "(m, frac read VO):
+   [w(x,1,1) w(y,1,1)]
+   [w(x,2,2) w(y,2,2)]
+   [r(x,1,3) r(y,2,3)]"
+  (let [t1 (op 1 :ok "ax1ay1")
+        t2 (op 2 :ok "ax2ay2")
+        t3 (op 2 :ok "rx1ry2")]
+    (h/history [t1 t2 t3])))
 
 (def hn-init-read
   "(j, init read):
@@ -1306,17 +1298,19 @@
 
 ;; TODO
 (def ho-co-conflict-vo
-  "(k, co conflict vo):
+  "(o, co conflict vo):
    [w(x,2,1)]
    [r(x,2,2)]
    [w(x,1,2) w(y,1,2)]
-   [r(y,1,3) r(x,2,3)]
+   [r(y,1,3)]
+   [r(x,2,3)]
    理解："
   (let [t1 (op 1 :ok "ax2")
         t2 (op 2 :ok "rx2")
         t3 (op 2 :ok "ax1ay1")
-        t4 (op 3 :ok "ry1rx2")]
-    (h/history [t1 t2 t3 t4])))
+        t4 (op 3 :ok "ry1")
+        t5 (op 3 :ok "rx2")]
+    (h/history [t1 t2 t3 t4 t5])))
 
 (def hp-conflict-vo
   "(l, conflict vo):
