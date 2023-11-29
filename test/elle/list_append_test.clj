@@ -1155,3 +1155,247 @@
 ;(deftest dirty-update-1-test
 ;  (cf {} "histories/dirty-update-1.edn")))
 
+
+(def ha-thin-air
+  "(a, thin air):
+   [r(x,1,1) r(y,1,1)]
+   理解：读到了不曾写入的值"
+  (let [t1 (op "rx1ry1")]
+    (h/history [t1])))
+
+(def hb-aborted-read
+  "(b, aborted read):
+   [w(x,1,1) w(y,1,1)]
+   [r(x,1,2)]
+   理解：读到了 aborted 事务写入的值"
+  (let [t1 (op 1 :fail "ax1ay1")
+        t2 (op 2 :ok "rx1")]
+    (h/history [t1 t2])))
+
+;; TODO:无法构图，无法检测
+(def hc-future-read
+  "(c, future read):
+   [r(x,1,1) w(x,1,1)]
+   理解：读到了后面写入的值"
+  (let [t1 (op "rx1ax1")]
+    (h/history [t1])))
+
+(def hd-not-my-own-write
+  "(d, not my own write):
+   [w(x,1,1)]
+   [w(x,2,2) r(x,1,2)]
+   理解：读到了不是自己写"
+  (let [t1 (op 1 :ok "ax1")
+        t2 (op 2 :ok "ax2rx1")]
+    (h/history [t1 t2])))
+
+(def he-intermediate-read
+  "(e, intermediate read):
+   [w(x,1,1) w(x,2,1)]
+   [r(x,1,2)]
+   理解：不是读到事务最后一个写操作的值"
+  (let [t1 (op 1 :ok "ax1ax2")
+        t2 (op 2 :ok "rx1")]
+    (h/history [t1 t2])))
+
+;; TODO?
+(def hf-cyclic-CO
+  "(f, cyclicCO):
+   [r(x,1,1) w(y,1,1)]
+   [r(y,1,2)]
+   [w(x,1,2)]"
+  (let [t1 (op 1 :ok "rx1ay1")
+        t2 (op 2 :ok "ry1")
+        t3 (op 2 :ok "ax1")]
+    (h/history [t1 t2 t3])))
+
+(def hg-init-read-mono
+  "(g, initReadMono):
+    [w(x,1,1)]
+    [w(x,1,2) w(y,2,2)]
+    [r(y,1,3) r(x,1,3)]"
+  (let [t1 (op 1 :ok "ax1")
+        t2 (op 2 :ok "ax2ay1")
+        t3 (op 3 :ok "ry1rx1")]
+    (h/history [t1 t2 t3])))
+
+(def hh-non-mono-read-co
+  "(h, nonMonoReadCO):
+    [w(x,2,1)]
+    [r(x,2,2)]
+    [w(x,1,2) w(y,1,2)]
+    [r(y,1,3) r(x,2,3)]"
+  (let [t1 (op 1 :ok "ax2")
+        t2 (op 2 :ok "rx2")
+        t3 (op 2 :ok "ax1ay1")
+        t4 (op 3 :ok "ry1rx2")]
+    (h/history [t1 t2 t3 t4])))
+
+(def hi-non-mono-read-vo
+  "(h, nonMonoReadCO):
+    [w(x,1,1) w(y,1,1)]
+    [w(x,2,2) w(y,2,2)]
+    [r(y,2,3) r(x,1,3)]"
+  (let [t1 (op 1 :ok "ax1ay1")
+        t2 (op 2 :ok "ax2ay2")
+        t3 (op 2 :ok "ry2rx1")]
+    (h/history [t1 t2 t3])))
+
+(def hj-non-repeatable-read
+  "(j, nonrepeatable read):
+   [w(x,1,1)]
+   [w(x,2,2)]
+   [r(x,1,3) r(x,2,3)]
+   理解：同个事务中两次读到的值不一致"
+  (let [t1 (op 1 :ok "ax1")
+        t2 (op 2 :ok "ax2")
+        t3 (op 3 :ok "rx1rx12")]
+    (h/history [t1 t2 t3])))
+
+(def hk-init-read-wr
+  "(k, initReadWR):
+    [w(x,1,1)]
+    [w(x,1,2) w(y,2,2)]
+    [r(x,1,3) r(y,1,3)]"
+  (let [t1 (op 1 :ok "ax1")
+        t2 (op 2 :ok "ax2ay1")
+        t3 (op 3 :ok "rx1ry1")]
+    (h/history [t1 t2 t3])))
+
+(def hl-frac-read-CO
+  "(h, frac read CO):
+   [w(x,2,1)]
+   [r(x,2,2)]
+   [w(x,1,2) w(y,1,2)]
+   [r(x,2,3) r(y,1,3)]
+   理解：t3对y写1且对x写1，如果t4读y1，则读x也需要1"
+  (let [t1 (op 1 :ok "ax2")
+        t2 (op 2 :ok "rx2")
+        t3 (op 2 :ok "ax1ay1")
+        t4 (op 3 :ok "rx2ry1")]
+    (h/history [t1 t2 t3 t4])))
+
+(def hm-frac-read-VO
+  "(i, frac read VO):
+   [w(x,2,1)]
+   [r(x,2,2)]
+   [w(x,1,2) w(y,1,2)]
+   [r(x,2,3) r(y,1,3)]
+   [r(x,2,4)]
+   [r(x,1,4)]
+   理解：同hh，同时 s4 上读到的顺序表明
+   该 session 上对 x 先写 2 后写 1"
+  (let [t1 (op 1 :ok "ax2")
+        t2 (op 2 :ok "rx2")
+        t3 (op 2 :ok "ax1ay1")
+        t4 (op 3 :ok "rx2ry1")
+        t5 (op 4 :ok "rx2")
+        t6 (op 4 :ok "rx1")]
+    (h/history [t1 t2 t3 t4 t5 t6])))
+
+(def hn-init-read
+  "(j, init read):
+   [w(x,1,1)]
+   [w(x,2,1) w(y,2,1)]
+   [r(x,1,1)]
+   理解：同一个session 上没读到上一个 txn 的写入"
+  (let [t1 (op 1 :ok "ax1")
+        t2 (op 1 :ok "ax2ay2")
+        t3 (op 1 :ok "rx1")]
+    (h/history [t1 t2 t3])))
+
+;; TODO
+(def ho-co-conflict-vo
+  "(k, co conflict vo):
+   [w(x,2,1)]
+   [r(x,2,2)]
+   [w(x,1,2) w(y,1,2)]
+   [r(y,1,3) r(x,2,3)]
+   理解："
+  (let [t1 (op 1 :ok "ax2")
+        t2 (op 2 :ok "rx2")
+        t3 (op 2 :ok "ax1ay1")
+        t4 (op 3 :ok "ry1rx2")]
+    (h/history [t1 t2 t3 t4])))
+
+(def hp-conflict-vo
+  "(l, conflict vo):
+   [w(x,2,1)]
+   [r(x,2,2)]
+   [w(x,1,2) w(y,1,2)]
+   [r(y,1,3) r(x,2,3)]
+   [r(x,2,4)]
+   [r(x,1,4)]"
+  (let [t1 (op 1 :ok "ax2")
+        t2 (op 2 :ok "rx2")
+        t3 (op 2 :ok "ax1ay1")
+        t4 (op 3 :ok "ry1rx2")
+        t5 (op 4 :ok "rx2")
+        t6 (op 4 :ok "rx1")]
+    (h/history [t1 t2 t3 t4 t5 t6])))
+
+(def his-to-tcc
+  [ha-thin-air
+   hb-aborted-read
+   hc-future-read
+   hd-not-my-own-write
+   he-intermediate-read
+   hf-cyclic-CO
+   hg-init-read-mono
+   hh-non-mono-read-co
+   hi-non-mono-read-vo
+   hj-non-repeatable-read
+   hk-init-read-wr
+   hl-frac-read-CO
+   hm-frac-read-VO
+   hn-init-read
+   ho-co-conflict-vo
+   hp-conflict-vo])
+
+(defn test-tcc
+  [h]
+  (c {:consistency-models [:strong-session-snapshot-isolation]} h))
+
+(defn test-all-histories []
+  (let [history-names ['ha-thin-air
+                       'hb-aborted-read
+                       'hc-future-read
+                       'hd-not-my-own-write
+                       'he-intermediate-read
+                       'hf-cyclic-CO
+                       'hg-init-read-mono
+                       'hh-frac-read-CO'
+                       'hi-frac-read-VO
+                       'hj-init-read
+                       'hk-co-conflict-vo
+                       'hl-conflict-vo]]
+    (doseq [h (map vector history-names his-to-tcc)]
+      (let [[name history] h]
+        (println "Testing history:" name)
+        (println "Content:" history)
+        (test-tcc history)))))
+
+(def h-wr-so-wr
+  [{:process 1, :type :invoke, :f :txn, :value [[:r :x] [:append :y 1]], :index 0}
+   {:process 1, :type :ok, :f :txn, :value [[:r :x [1]] [:append :y 1]], :index 1}
+   {:process 2, :type :invoke, :f :txn, :value [[:r :y]], :index 2}
+   {:process 2, :type :ok, :f :txn, :value [[:r :y [1]]], :index 3}
+   {:process 2, :type :invoke, :f :txn, :value [[:append :x 1]], :index 4}
+   {:process 2, :type :ok, :f :txn, :value [[:append :x 1]], :index 5}])
+
+(c {:consistency-models [:strong-session-snapshot-isolation]
+    :anomalies [:G-nonadjacent-process]
+    :additional-graphs [elle/process-graph]} hg-cyclic-CO-invoke)
+
+;(def h-causal-order
+;  (let [t1 (op 1 :invoke "rxay1")
+;        t1' (op 1 :ok "rx1ay1")
+;        t2 (op 2 :invoke "ry")
+;        t2' (op 2 :ok "ry1")
+;        t3 (op 2 :invoke "ax1")
+;        t3' (op 2 :ok "ax1")]
+;    (h/history [t1 t1' t2 t2' t3 t3'])))
+;
+;(def h-future-read
+;  (let [t1 (op "rx1ax1")]
+;    (h/history [t1])))
