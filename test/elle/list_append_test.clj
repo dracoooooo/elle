@@ -1209,17 +1209,7 @@
         t3 (op 2 :ok "ax1")]
     (h/history [t1 t2 t3])))
 
-(def hg-init-read-mono
-  "(g, initReadMono):
-    [w(x,1,1)]
-    [w(x,1,1) w(y,2,1)]
-    [r(y,1,2) r(x,1,2)]"
-  (let [t1 (op 1 :ok "ax1")
-        t2 (op 1 :ok "ax2ay1")
-        t3 (op 2 :ok "ry1rx1")]
-    (h/history [t1 t2 t3])))
-
-(def hh-non-mono-read-co
+(def hg-non-mono-read-co
   "(h, nonMonoReadCO):
     [w(x,2,1)]
     [r(x,2,2)]
@@ -1231,7 +1221,7 @@
         t4 (op 3 :ok "ry1rx2")]
     (h/history [t1 t2 t3 t4])))
 
-(def hi-non-mono-read-vo
+(def hh-non-mono-read-vo
   "(h, nonMonoReadCO):
     [w(x,1,1) w(y,1,1)]
     [w(x,2,2) w(y,2,2)]
@@ -1241,7 +1231,7 @@
         t3 (op 2 :ok "ry2rx1")]
     (h/history [t1 t2 t3])))
 
-(def hj-non-repeatable-read
+(def hi-non-repeatable-read
   "(j, nonrepeatable read):
    [w(x,1,1)]
    [w(x,2,2)]
@@ -1252,17 +1242,7 @@
         t3 (op 3 :ok "rx1rx12")]
     (h/history [t1 t2 t3])))
 
-(def hk-init-read-wr
-  "(k, initReadWR):
-    [w(x,1,1)]
-    [w(x,1,1) w(y,2,1)]
-    [r(x,1,2) r(y,1,2)]"
-  (let [t1 (op 1 :ok "ax1")
-        t2 (op 1 :ok "ax2ay1")
-        t3 (op 2 :ok "rx1ry1")]
-    (h/history [t1 t2 t3])))
-
-(def hl-frac-read-CO
+(def hj-frac-read-CO
   "(h, frac read CO):
    [w(x,2,1)]
    [r(x,2,2)]
@@ -1275,7 +1255,7 @@
         t4 (op 3 :ok "rx2ry1")]
     (h/history [t1 t2 t3 t4])))
 
-(def hm-frac-read-VO
+(def hk-frac-read-VO
   "(m, frac read VO):
    [w(x,1,1) w(y,1,1)]
    [w(x,2,2) w(y,2,2)]
@@ -1285,19 +1265,8 @@
         t3 (op 2 :ok "rx1ry2")]
     (h/history [t1 t2 t3])))
 
-(def hn-init-read
-  "(j, init read):
-   [w(x,1,1)]
-   [w(x,2,1) w(y,2,1)]
-   [r(x,1,1)]
-   理解：同一个session 上没读到上一个 txn 的写入"
-  (let [t1 (op 1 :ok "ax1")
-        t2 (op 1 :ok "ax2ay2")
-        t3 (op 1 :ok "rx1")]
-    (h/history [t1 t2 t3])))
-
 ;; TODO
-(def ho-co-conflict-vo
+(def hl-co-conflict-vo
   "(o, co conflict vo):
    [w(x,2,1)]
    [r(x,2,2)]
@@ -1312,7 +1281,7 @@
         t5 (op 3 :ok "rx2")]
     (h/history [t1 t2 t3 t4 t5])))
 
-(def hp-conflict-vo
+(def hm-conflict-vo
   "(l, conflict vo):
    [w(x,2,1)]
    [r(x,2,2)]
@@ -1334,17 +1303,7 @@
    hc-future-read
    hd-not-my-own-write
    he-intermediate-read
-   hf-cyclic-CO
-   hg-init-read-mono
-   hh-non-mono-read-co
-   hi-non-mono-read-vo
-   hj-non-repeatable-read
-   hk-init-read-wr
-   hl-frac-read-CO
-   hm-frac-read-VO
-   hn-init-read
-   ho-co-conflict-vo
-   hp-conflict-vo])
+   hf-cyclic-CO])
 
 (defn test-tcc
   [h]
