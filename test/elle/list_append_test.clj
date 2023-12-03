@@ -1189,7 +1189,14 @@
         t2 (op 2 :ok "ax2rx1")]
     (h/history [t1 t2])))
 
-(def he-intermediate-read
+(def he-not-my-last-write
+  "(e, not my last write):
+   [w(x,1,1) w(x,2,1) r(x,1,1)]
+   理解：读到了不是自己写"
+  (let [t1 (op 1 :ok "ax1ax2rx1")]
+    (h/history [t1])))
+
+(def hf-intermediate-read
   "(e, intermediate read):
    [w(x,1,1) w(x,2,1)]
    [r(x,1,2)]
@@ -1199,7 +1206,7 @@
     (h/history [t1 t2])))
 
 ;; TODO?
-(def hf-cyclic-CO
+(def hg-cyclic-CO
   "(f, cyclicCO):
    [r(x,1,1) w(y,1,1)]
    [r(y,1,2)]
@@ -1209,7 +1216,7 @@
         t3 (op 2 :ok "ax1")]
     (h/history [t1 t2 t3])))
 
-(def hg-non-mono-read-co
+(def hh-non-mono-read-co
   "(h, nonMonoReadCO):
     [w(x,2,1)]
     [r(x,2,2)]
@@ -1221,7 +1228,7 @@
         t4 (op 3 :ok "ry1rx2")]
     (h/history [t1 t2 t3 t4])))
 
-(def hh-non-mono-read-vo
+(def hi-non-mono-read-vo
   "(h, nonMonoReadCO):
     [w(x,1,1) w(y,1,1)]
     [w(x,2,2) w(y,2,2)]
@@ -1231,7 +1238,7 @@
         t3 (op 2 :ok "ry2rx1")]
     (h/history [t1 t2 t3])))
 
-(def hi-non-repeatable-read
+(def hj-non-repeatable-read
   "(j, nonrepeatable read):
    [w(x,1,1)]
    [w(x,2,2)]
@@ -1242,7 +1249,7 @@
         t3 (op 3 :ok "rx1rx12")]
     (h/history [t1 t2 t3])))
 
-(def hj-frac-read-CO
+(def hk-frac-read-CO
   "(h, frac read CO):
    [w(x,2,1)]
    [r(x,2,2)]
@@ -1255,7 +1262,7 @@
         t4 (op 3 :ok "rx2ry1")]
     (h/history [t1 t2 t3 t4])))
 
-(def hk-frac-read-VO
+(def hl-frac-read-VO
   "(m, frac read VO):
    [w(x,1,1) w(y,1,1)]
    [w(x,2,2) w(y,2,2)]
@@ -1266,7 +1273,7 @@
     (h/history [t1 t2 t3])))
 
 ;; TODO
-(def hl-co-conflict-vo
+(def hm-co-conflict-vo
   "(o, co conflict vo):
    [w(x,2,1)]
    [r(x,2,2)]
@@ -1281,7 +1288,7 @@
         t5 (op 3 :ok "rx2")]
     (h/history [t1 t2 t3 t4 t5])))
 
-(def hm-conflict-vo
+(def hn-conflict-vo
   "(l, conflict vo):
    [w(x,2,1)]
    [r(x,2,2)]
